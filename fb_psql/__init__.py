@@ -33,8 +33,6 @@ class FqlForeignDataWrapper(ForeignDataWrapper):
 
     params   = { 'q': self.get_query_string(columns), 'access_token': self.key }
 
-    log(params['q'])
-
     response = get('https://graph.facebook.com/fql', params=params).json()
 
     if 'error' in response:
