@@ -15,6 +15,10 @@ class FqlForeignDataWrapper(ForeignDataWrapper):
     if "key" not in options:
       log(message = "No api key given", level = logging.ERROR)
 
+  def handle_error(self, response):
+    error = response["error"]["message"]
+    log(message = error, level = logging.ERROR)
+
   def execute(self, quals, columns):
     params = { 'q': 'select uid2 from friend where uid1=me()', 'access_token': self.key }
 
@@ -22,5 +26,8 @@ class FqlForeignDataWrapper(ForeignDataWrapper):
 
     response = r.json()
 
-    for entry in response["data"]:
-      yield entry
+    if "error" in response:
+      self.handle_error(response)
+    else:
+      for entry in response["data"]:
+        yield entry
