@@ -25,15 +25,22 @@ class FqlForeignDataWrapper(ForeignDataWrapper):
     error = response['error']['message']
     log(message = error, level = logging.ERROR)
 
-  def get_query_string(self, columns):
+  def get_query_string(self, columns, quals):
     cols = ','.join(columns)
-    return 'select %s from %s where uid1=me()' % (cols, self.table)
+
+    query = 'select %s from %s' % (cols, self.table)
+
+    if 'uid' in columns and 'uid' not in [q.field_name for q in quals]:
+        query = query + ' where uid=me()'
+
+    return query
 
   def execute(self, quals, columns):
 
-    params   = { 'q': self.get_query_string(columns), 'access_token': self.key }
+    params   = { 'q': self.get_query_string(columns,quals), 'access_token': self.key }
+    request  = get('https://graph.facebook.com/fql', params=params)
 
-    response = get('https://graph.facebook.com/fql', params=params).json()
+    response = request.json()
 
     if 'error' in response:
       self.handle_error(response)
